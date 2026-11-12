@@ -51,6 +51,7 @@ def clean_generation(raw_output: str, stop_token: str = '<|endoftext|>') -> str:
     """Remove all occurrences of stop_t
     oken and truncate everything at/after '### END', then strip."""
     # TODO: Implement Exercise 01.03
+
     raise NotImplementedError('Implement Exercise 01.03: clean_generation')
 
 
@@ -64,9 +65,30 @@ def calculate_call_cost(prompt_tokens: int, completion_tokens: int, input_price_
 # Exercise 01.05: extract_code_block
 def extract_code_block(llm_response: str, language: str = 'python') -> str:
     """Extract raw code inside ```{language} ... ``` or generic ``` ... ``` fences, or stripped string."""
-    # TODO: Implement Exercise 01.05
-    raise NotImplementedError('Implement Exercise 01.05: extract_code_block')
+    target_fence = f"```{language}"
 
+    # 1. Check for specific language fence: ```{language}
+    if target_fence.lower() in llm_response.lower():
+        # Find where the fence starts (case-insensitive)
+        idx = llm_response.lower().find(target_fence.lower())
+        after_open = llm_response[idx + len(target_fence):]
+        # Drop the rest of the fence header line (e.g. newline)
+        if "\n" in after_open:
+            after_open = after_open.split("\n", 1)[1]
+        # Slice up to the closing fence
+        if "```" in after_open:
+            return after_open.split("```", 1)[0].strip()
+
+    # 2. Check for generic fence: ```
+    if "```" in llm_response:
+        after_open = llm_response.split("```", 1)[1]
+        if "\n" in after_open:
+            after_open = after_open.split("\n", 1)[1]
+        if "```" in after_open:
+            return after_open.split("```", 1)[0].strip()
+
+    # 3. Fallback: plain text without fences
+    return llm_response.strip()
 
 # Exercise 01.06: clamp_temperature
 def clamp_temperature(temp: float | int) -> float:
